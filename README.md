@@ -1,144 +1,169 @@
 # v64hdd
 
-This repository preserves a modified BIOS for the **Bung V64** — a Nintendo 64 backup device. The BIOS adds experimental support for loading ROMs from **Compact Flash (CF)** cards or **IDE HDDs**, using the FAT16 file system. It was created by **OzOnE** and is based on the official **v1.30 BIOS**.
+Modified BIOS for the **Bung Doctor V64**, a Nintendo 64 backup and development device. This BIOS replaces CD-based ROM loading with support for **Compact Flash cards** and **IDE hard drives**, using FAT16 or FAT32 file systems.
 
-This repository exists to **preserve and document OzOnE’s work**, which was previously scattered across forums and risked being lost.
+Created by **OzOnE**, based on the official v1.30 BIOS. This repository exists to preserve and document his work, which was originally shared on forums and at risk of being lost.
 
-> ℹ️ For CD64 / CD64 Plus owners, the equivalent HDD BIOS is hosted here:  
-> 👉 https://github.com/rogerhinders/hdd64
-
----
-
-## 🎮 What is the V64?
-
-The **Bung V64** is a backup and development device for the Nintendo 64. It connects to the N64’s expansion port and originally loaded games from CDs. This custom BIOS enables the use of a CF or HDD via an IDE interface — eliminating CD use entirely.
+> For CD64 / CD64 Plus owners, the equivalent HDD BIOS is available at https://github.com/rogerhinders/hdd64
 
 ---
 
-## 🔧 BIOS Version and Scope
+## What is the Doctor V64?
 
-- ✅ Based on: Official **v1.30 BIOS**
-- ❌ Not based on: v2.03 / v2.03b (the last official versions)
-- 🧠 Author: **OzOnE**
-- 🖥️ Compatible with: **V64 only** (not V64 Jr)
-- ⚠️ Not officially supported, experimental and may be unstable
-- 🪛 Installation: via EPROM replacement or flash programmer
+The Bung Doctor V64 is a backup and development device for the Nintendo 64. It connects to the N64 cartridge slot and was originally designed to load ROMs from CDs. This custom BIOS replaces CD loading with IDE storage support, allowing ROMs to be loaded from a Compact Flash card or hard drive instead.
 
 ---
 
-## 💾 Compact Flash Setup
+## BIOS Details
 
-This BIOS supports:
+| | |
+|---|---|
+| **Base** | Official v1.30 BIOS |
+| **Author** | OzOnE |
+| **Processor** | 6502 |
+| **Compatibility** | V64 only, not V64 Jr |
+| **File systems** | FAT16 and FAT32 |
+| **Installation** | EPROM replacement or flash programmer |
+| **Status** | Experimental, not officially supported |
 
-- **IDE to Compact Flash** adapters (preferred)
-- **Standard IDE HDDs** (max 2GB)
-- **FAT16 file system**
-- **MBR partitioning**
+### Timeline
 
-### ✅ Recommended Setup (Linux)
+- **May 1997**: Original v1.30 BIOS disassembled and annotated by OzOnE
+- **January 2008**: HDD/CF support added, ROMs can be loaded from IDE storage
+- **November 2009**: FAT32 support added with cluster chain following, eliminating the need to defragment
 
-You can format your CF card using the following steps:
+---
+
+## Storage Setup
+
+### Supported Hardware
+
+- IDE to Compact Flash adapters (recommended)
+- Standard IDE hard drives, up to 2 GB
+- MBR partition table
+
+### Formatting a CF Card on Linux
 
 ```bash
-# Wipe partition table and create MBR
+# Replace /dev/sdX with your CF card device
 sudo fdisk /dev/sdX
 
 # Inside fdisk:
-# d (delete existing partition)
-# n (new partition, primary, default sectors)
-# t (change type, set to 06 for FAT16)
-# w (write and exit)
+# d    delete existing partitions
+# n    new partition, primary, default start and end sectors
+# t    set type to 06 (FAT16) or 0B (FAT32)
+# w    write and exit
 
-# Format as FAT16
+# Format the partition
 sudo mkfs.vfat -F 16 /dev/sdX1
 ```
 
-Replace `/dev/sdX1` with your CF partition.
+### Tips for Best Performance
+
+- Keep ROMs in subfolders rather than the root directory
+- FAT16 limits the root directory to 512 entries total
+- Use 8.3 filenames, for example `ZELDAUSA.Z64`
+- The BIOS slows down when listing many files in a single directory
 
 ---
 
-## ⚠️ FAT16 Limitations
+## Installation
 
-FAT16 imposes several important limits:
+> **Proceed at your own risk.** This is experimental software.
 
-- **Max root entries**: 512 total (files + folders)
-- **Max file size**: 2GB (not a concern for N64 ROMs)
-- **No support for long filenames**: use 8.3 format (e.g. `ZELDAUSA.Z64`)
-- **Performance issues**: the BIOS slows down when listing many files, especially in the root folder
+1. **Identify your BIOS chip.** Most V64 units use an AM29F010 or compatible 128 KB flash chip. If the chip is soldered and covered in epoxy, do not attempt modification.
 
-> 📌 For best results:
-> - Keep ROMs in subfolders
-> - Avoid clutter in the root directory
-> - Stay well below the 512 root entries limit
+2. **Back up your original BIOS** using an EPROM programmer before making any changes.
 
----
+3. **Flash the modified BIOS** to a spare chip.
 
-## 🛠️ Installation Instructions
+4. **Install the chip** in the V64's BIOS socket.
 
-> ⚠️ Proceed at your own risk. This software is experimental.
-
-1. **Identify your V64 BIOS chip**:
-   - Most units use an **AM29F010** or compatible 128KB Flash chip
-   - If the chip is soldered and covered in epoxy, **do not attempt modification**
-
-2. **Backup your original BIOS** using a programmer.
-
-3. **Flash the modified BIOS** (e.g. `OZ.bin`) to a spare chip.
-
-4. **Install the new chip** in a socket or as a replacement.
-
-> 🔁 It is highly recommended to keep a **chip with the original BIOS** (v1.30 or 2.03) as a backup.
+Keep a chip with the original BIOS as a fallback. The original v1.30 or v2.03 BIOS can restore normal CD-based operation if needed.
 
 ---
 
-## 🧱 Building from Source (Linux)
+## Building from Source
 
-OzOnE originally used a DOS environment and the `DASM` assembler to build the BIOS. You can build it on Linux using the modern `dasm` package.
+OzOnE's original build environment was DOS-based, using `dasm` for assembly and `MAKEBIOS.EXE` to produce the final BIOS image. The included `COMPILE.bat` shows the full original workflow.
 
-### 🔧 Requirements
+### Original Build Process (DOS)
 
-- [dasm](https://github.com/dasm-assembler/dasm) (Install via package manager or compile from source)
-
-### 📂 Files
-
-- `OZ.asm` — main source code
-- `MAKEBIOS.EXE` — tool originally used to finalize the BIOS (not used on Linux)
-
-### ✅ Build Instructions
-
-```bash
-# Clone and enter the repo
-git clone https://github.com/youruser/v64hdd
-cd v64hdd
-
-# Build using dasm
-dasm OZ.asm -f3 -oOZ.BIN
+```batch
+dasm OZ.asm -v3 -f3 -oOZ.obj -sOZ.sym -lOZ.lst
+dos32a makebios OZ.obj V64_VER1.30I
 ```
 
-> This will generate `OZ.BIN` — ready to be flashed to your BIOS chip.
+This assembles the source into a raw binary, then `MAKEBIOS.EXE` pads and formats it into the final 256 KB BIOS image.
+
+### Building on Linux
+
+You can assemble the source on Linux using the modern [dasm](https://github.com/dasm-assembler/dasm) package. Note that `MAKEBIOS.EXE` is a DOS executable, so the final BIOS packaging step requires DOSBox or a similar compatibility layer.
+
+```bash
+git clone git@github.com:gufranco/v64hdd.git
+cd v64hdd
+
+# Assemble the source
+dasm OZ.asm -f3 -oOZ.obj -sOZ.sym -lOZ.lst
+```
+
+### Source Files
+
+| File | Description |
+|------|-------------|
+| `OZ.asm` | Main source code, ~10,000 lines of annotated 6502 assembly |
+| `MAKEBIOS.EXE` | DOS tool that produces the final BIOS image from the assembled binary |
+| `COMPILE.bat` | Original build script |
+| `dasm.exe` | DOS version of the DASM assembler |
+| `DASM.txt` | DASM v2.0 documentation |
 
 ---
 
-## 🚫 Known Issues
+## Repository Contents
 
-- Slow performance when listing many files
+### Preserved Releases
+
+The `releases - hdd` directory contains pre-built HDD BIOS binaries by OzOnE:
+
+| File | Date |
+|------|------|
+| `Doctor V64 BIOS V1.30_28-1-08_OzOnE.bin` | January 28, 2008 |
+| `Doctor V64 BIOS V1.30_02-2-08_OzOnE.bin` | February 2, 2008 |
+
+The `releases - cdrom` directory contains official CD-ROM BIOS versions for reference:
+
+- V2.02, V2.02b
+- V2.03 in multiple color variants: standard, Black, Blue, Green, Purple, Red
+
+### Original Archives
+
+The `zips` directory contains the original distribution archives as they were shared online:
+
+- `V64_HDD_-_Working___28-1-08_OzOnE.zip`: first working HDD build
+- `V64 BIOS Asm + DASM (OzOnE 20-11-12).zip`: source code and tools bundle
+
+---
+
+## Known Issues
+
+- Listing performance degrades with many files in a single directory
 - Some ROMs may not load correctly
-- FAT32 is not supported
-- Unstable with certain CF cards or adapters
-- BIOS is not optimized for speed or efficiency
+- Certain CF cards or IDE adapters may be incompatible
+- The BIOS update via CD-R or parallel port was not fully tested by OzOnE. Using an EPROM programmer is the safest approach.
 
 ---
 
-## 📜 Credits
+## Credits
 
-- Original BIOS mod created by **OzOnE**
-- This repository only **preserves** the work and is **not affiliated** with the original author
-- Thanks to **Matthew Dillon** for the original **DASM assembler**
+- **OzOnE**: BIOS disassembly, annotation, and all HDD/CF modifications
+- **Lac, Gaston, and others**: code, tools, and suggestions that inspired the project
+- **Matthew Dillon**: DASM assembler
+
+This repository only preserves OzOnE's work and is not affiliated with the original author.
 
 ---
 
-## 🧷 Disclaimer
+## Disclaimer
 
-> This software is provided **as-is** with no warranty.  
-> Use it at your own risk.  
-> The author(s) and repository maintainer **accept no responsibility** for damage to your hardware, data loss, or failed installations.
+This software is provided as-is with no warranty. Use it at your own risk. The repository maintainer accepts no responsibility for damage to hardware, data loss, or failed installations.
